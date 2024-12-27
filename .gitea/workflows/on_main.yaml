@@ -61,6 +61,6 @@ jobs:
           helm repo add --username $GITEA_OWNER --password $GITEA_TOKEN $GITEA_REPO $GITEA_URL/api/packages/$GITEA_OWNER/helm
 
           # Push the chart to the Gitea Helm repository
-          helm cm-push $CHART_FILE $GITEA_REPO
+          helm push $CHART_FILE $GITEA_REPO
 
           echo "Helm chart uploaded successfully."
