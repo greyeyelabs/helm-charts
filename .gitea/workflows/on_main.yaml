@@ -10,6 +10,7 @@ on:
 jobs:
   publish-helm-chart:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -44,10 +45,58 @@ jobs:
         run: |
           helm package $chart_dir -d ./packages
 
-      - name: Use Go Action
-        id: use-go-action
-        uses: actions/release-action@main
-        with:
-          files: |-
-            packages/**
-          api_key: '${{secrets.ACT_RUNNER_TOKEN}}'
+      - name: Get Meta
+        id: meta
+        run: |
+          echo REPO_NAME=$(echo ${GITHUB_REPOSITORY} | awk -F"/" '{print $2}') >> $GITHUB_OUTPUT
+          echo REPO_VERSION=$(git describe --tags --always | sed 's/^v//') >> $GITHUB_OUTPUT                
+
+
+      - name: Publish Helm chart to Gitea
+        if: env.chart_dir
+        env:
+          GITEA_URL: "https://gitea.lab1.nekolabs.cc" # URL of your Gitea server
+          GITEA_TOKEN: "${{ secrets.ACT_RUNNER_TOKEN }}" # Gitea Personal Access Token stored as a secret
+          GITEA_OWNER: "greyeye"   # Gitea user/org where the package is published
+          GITEA_REPO: "helm-charts"           # Gitea repo where the chart is stored
+        run: |
+          CHART_FILE=$(find ./packages -type f -name "*.tgz")
+          if [ -z "$CHART_FILE" ]; then
+            echo "Error: No chart package found."
+            exit 1
+          fi
+
+          RELEASE_TAG="v$(helm show chart $chart_dir | grep version | cut -d ':' -f2 | tr -d ' ')"
+          UPLOAD_URL="$GITEA_URL/api/v1/repos/$GITEA_OWNER/$GITEA_REPO/releases"
+
+          # Check if release exists
+          RELEASE_EXISTS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $GITEA_TOKEN" "$UPLOAD_URL/tags/$RELEASE_TAG")
+
+          if [ "$RELEASE_EXISTS" -ne 200 ]; then
+            echo "Creating new release $RELEASE_TAG..."
+            curl -s -X POST "$UPLOAD_URL" \
+              -H "Authorization: token $GITEA_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{"tag_name": "'$RELEASE_TAG'", "name": "'$PACKAGE_NAME'", "body": "Release for Helm chart version '$RELEASE_TAG'", "draft": false, "prerelease": false}'
+          else
+            echo "Release $RELEASE_TAG already exists."
+          fi
+
+          # Upload the Helm chart
+          echo $UPLOAD_URL
+          echo $RELEASE_TAG
+          echo $GITEA_TOKEN
+          
+          RELEASE_ID=$(curl -s -H "Authorization: token $GITEA_TOKEN" "$UPLOAD_URL/tags/$RELEASE_TAG" | jq -r '.id')
+          if [ -z "$RELEASE_ID" ]; then
+            echo "Error: Failed to get release ID."
+            exit 1
+          fi
+
+          UPLOAD_ASSET_URL="$UPLOAD_URL/$RELEASE_ID/assets?name=$(basename $CHART_FILE)"
+          curl -s -X POST "$UPLOAD_ASSET_URL" \
+            -H "Authorization: token $GITEA_TOKEN" \
+            -H "Content-Type: application/gzip" \
+            --data-binary "@$CHART_FILE"
+
+          echo "Helm chart uploaded successfully."
