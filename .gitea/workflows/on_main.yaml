@@ -46,7 +46,7 @@ jobs:
       - name: Publish Helm chart to Gitea
         if: env.chart_dir
         env:
-          GITEA_URL: "https://gitea.lab1.nekolabs.cc" # URL of your Gitea server
+          GITEA_URL: "gitea.lab1.nekolabs.cc" # URL of your Gitea server
           GITEA_TOKEN: "${{ secrets.GITEA_TOKEN }}" # Gitea Personal Access Token stored as a secret
           GITEA_OWNER: "greyeye"   # Gitea user/org where the package is published
           GITEA_REPO: "helm-charts"           # Gitea repo where the chart is stored
@@ -58,9 +58,9 @@ jobs:
           fi
 
           # Add the Gitea Helm repository
-          helm repo add --username $GITEA_OWNER --password $GITEA_TOKEN $GITEA_REPO $GITEA_URL/api/packages/$GITEA_OWNER/helm
+          helm registry login --username $GITEA_OWNER --password $GITEA_TOKEN $GITEA_URL/api/packages/$GITEA_OWNER/helm
 
           # Push the chart to the Gitea Helm repository
-          helm push $CHART_FILE $GITEA_REPO
+          helm push $CHART_FILE oci://$GITEA_REPO/$GITEA_OWNER/$GITEA_REPO
 
           echo "Helm chart uploaded successfully."
