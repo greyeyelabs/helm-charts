@@ -21,13 +21,14 @@ jobs:
       - name: Determine Changed Chart
         id: find-chart
         run: |
-          # Get the list of changed files
-          CHANGED_FILES=$(git diff --name-only ${{ gitea.event.before }} ${{ gitea.sha }})
+          # Fallback to HEAD~1 if github.event.before is unavailable
+          BEFORE_COMMIT=${{ github.event.before || 'HEAD~1' }}
+          CHANGED_FILES=$(git diff --name-only $BEFORE_COMMIT ${{ github.sha }})
 
           # Find the first changed chart directory
           for file in $CHANGED_FILES; do
             if [[ $file =~ charts/(applications|utils)/[^/]+/Chart.yaml ]]; then
-              echo "chart_dir=$(dirname $file)" >> $GITEA_ENV
+              echo "chart_dir=$(dirname $file)" >> $GITHUB_ENV
               break
             fi
           done
@@ -36,6 +37,7 @@ jobs:
             echo "No changed charts found. Exiting."
             exit 0
           fi
+
 
       - name: Package Helm chart
         if: env.chart_dir
