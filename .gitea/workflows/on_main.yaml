@@ -1,42 +1,65 @@
-name: Release Charts
+name: Publish Helm Chart
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'helm/**'
-      - 'charts/**'
-      - 'chart/**'
-
-env:
-  REGISTRY_HOST: gitea.lab1.nekolabs.cc
-  REGISTRY_USERNAME: ${{ gitea.repository_owner }}
-  REGISTRY_PASSWORD: ${{ secrets.ACT_RUNNER_TOKEN }}
+      - "charts/**"
 
 jobs:
-  release:
+  publish-helm-chart:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
-      - name: Configure Git
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+
+      - name: Determine Changed Chart
+        id: find-chart
         run: |
-          git config user.name "${{ gitea.actor }}"
-          git config user.email "${{ gitea.actor }}@users.noreply.${{ env.REGISTRY_HOST }}"
+          # Get the list of changed files
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.before || 'HEAD~1' }} ${{ github.sha }})
 
-      - name: Run chart-releaser
-        uses: https://github.com/thpham/helm-oci-charts-releaser@v1
-        with:
-          oci_registry: ${{ env.REGISTRY_HOST }}/${{ gitea.repository_owner }}
-          oci_username: ${{ gitea.repository_owner }}
-          oci_password: ${{ secrets.ACT_RUNNER_TOKEN }}
-          gitea_server: ${{ env.REGISTRY_HOST }}
-          gitea_token: ${{ secrets.GITEA_TOKEN }}
-          tag_name_pattern: '{chartName}-chart'
+          # Find the first changed chart directory
+          for file in $CHANGED_FILES; do
+            if [[ $file =~ charts/(applications|utils)/.* ]]; then
+              echo "chart_dir=$(dirname $file)" >> $GITHUB_ENV
+              break
+            fi
+          done
+
+          if [ -z "$chart_dir" ]; then
+            echo "No changed charts found. Exiting."
+            exit 0
+          fi
+
+      - name: Package Helm chart
+        if: env.chart_dir
+        run: |
+          helm package $chart_dir -d ./packages
+
+      - name: Publish Helm chart to Gitea
+        if: env.chart_dir
+        env:
+          GITEA_URL: "https://gitea.lab1.nekolabs.cc" # URL of your Gitea server
+          GITEA_TOKEN: "${{ secrets.GITEA_TOKEN }}" # Gitea Personal Access Token stored as a secret
+          GITEA_OWNER: "greyeye"   # Gitea user/org where the package is published
+          GITEA_REPO: "helm-charts"           # Gitea repo where the chart is stored
+        run: |
+          CHART_FILE=$(find ./packages -type f -name "*.tgz")
+          if [ -z "$CHART_FILE" ]; then
+            echo "Error: No chart package found."
+            exit 1
+          fi
+
+          # Add the Gitea Helm repository
+          helm repo add --username $GITEA_OWNER --password $GITEA_TOKEN $GITEA_REPO $GITEA_URL/api/packages/$GITEA_OWNER/helm
+
+          # Push the chart to the Gitea Helm repository
+          helm cm-push $CHART_FILE $GITEA_REPO
+
+          echo "Helm chart uploaded successfully."
