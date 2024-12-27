@@ -1,3 +1,3 @@
 #httpbin template
 
-kick 8
+kick 9
