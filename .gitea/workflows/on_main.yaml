@@ -22,12 +22,12 @@ jobs:
         id: find-chart
         run: |
           # Get the list of changed files
-          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          CHANGED_FILES=$(git diff --name-only ${{ gitea.event.before }} ${{ gitea.sha }})
 
           # Find the first changed chart directory
           for file in $CHANGED_FILES; do
             if [[ $file =~ charts/(applications|utils)/[^/]+/Chart.yaml ]]; then
-              echo "chart_dir=$(dirname $file)" >> $GITHUB_ENV
+              echo "chart_dir=$(dirname $file)" >> $GITEA_ENV
               break
             fi
           done
