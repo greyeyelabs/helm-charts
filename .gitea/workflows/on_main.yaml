@@ -28,7 +28,7 @@ jobs:
 
           # Find the first changed chart directory
           for file in $CHANGED_FILES; do
-            if [[ $file =~ charts/(applications|utils)/[^/]+/Chart.yaml ]]; then
+            if [[ $file =~ charts/(applications|utils)/.* ]]; then
               echo "chart_dir=$(dirname $file)" >> $GITHUB_ENV
               break
             fi
