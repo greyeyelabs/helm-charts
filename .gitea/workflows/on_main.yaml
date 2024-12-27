@@ -58,7 +58,7 @@ jobs:
           fi
 
           # Add the Gitea Helm repository
-          helm registry login --username $GITEA_OWNER --password $GITEA_TOKEN $GITEA_URL/api/packages/$GITEA_OWNER/helm
+          helm registry login --username $GITEA_OWNER --password $GITEA_TOKEN $GITEA_URL/$GITEA_OWNER/$GITEA_REPO
 
           # Push the chart to the Gitea Helm repository
           helm push $CHART_FILE oci://$GITEA_REPO/$GITEA_OWNER/$GITEA_REPO
