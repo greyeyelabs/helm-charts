@@ -36,7 +36,7 @@ jobs:
         with:
           oci_registry: ${{ env.REGISTRY_HOST }}/${{ gitea.repository_owner }}
           oci_username: ${{ gitea.repository_owner }}
-          oci_password: ${{ secrets.PAT }}
+          oci_password: ${{ secrets.ACT_RUNNER_TOKEN }}
           gitea_server: ${{ env.REGISTRY_HOST }}
           gitea_token: ${{ secrets.GITEA_TOKEN }}
           tag_name_pattern: '{chartName}-chart'
