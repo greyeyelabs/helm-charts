@@ -2,7 +2,7 @@ name: Actions Runner Controller Demo
 on:
   push:
     branches:
-      - main
+      - github
     paths:
       - "charts/**"
 
