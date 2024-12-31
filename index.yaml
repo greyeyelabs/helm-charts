@@ -15,6 +15,18 @@ entries:
     version: 2.15.0
   - apiVersion: v2
     appVersion: v2.15.0
+    created: "2024-12-31T05:06:34.564556128Z"
+    description: Helm chart to install httpbingo.org on Kubernetes
+    digest: 5e97ba033a5867f244bcab0a8545323875aec2cf75f6786f90ae9da56cc5ccd0
+    keywords:
+    - httpbin
+    name: httpbin
+    type: application
+    urls:
+    - https://github.com/greyeyelabs/helm-charts/releases/download/httpbin-0.0.6/httpbin-0.0.6.tgz
+    version: 0.0.6
+  - apiVersion: v2
+    appVersion: v2.15.0
     created: "2024-12-31T04:51:28.124969393Z"
     description: Helm chart to install httpbingo.org on Kubernetes
     digest: 2f8c2d8d8846d1e0ebf76427c3c8fec139dc2528449d3b8552e3d6f28c6d089f
@@ -49,4 +61,4 @@ entries:
     urls:
     - https://github.com/greyeyelabs/helm-charts/releases/download/httpbin-0.0.2/httpbin-0.0.2.tgz
     version: 0.0.2
-generated: "2024-12-31T04:51:28.124985653Z"
+generated: "2024-12-31T05:06:34.564577287Z"
