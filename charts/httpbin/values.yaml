@@ -14,6 +14,9 @@ image:
   # @default -- chart appVersion
   tag: ""
 
+deployment:
+  replicas: 1
+
 # -- Specify docker-registry secret names as an array
 imagePullSecrets: []
 # -- String to partially override fullname template with a string (will prepend the release name)
