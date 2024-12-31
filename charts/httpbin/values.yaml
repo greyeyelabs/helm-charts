@@ -93,7 +93,11 @@ tolerations: []
 affinity: {}
 
 gateway:
-  enabled: true
+  name: "httpbin-gateway"
+  namespace: "default"
+  annotations: {}
+#    cert-manager.io/cluster-issuer: "letsencrypt"
+  enabled: false
   className: "cilium"
   listeners: []
 #    - allowedRoutes:
