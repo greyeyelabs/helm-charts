@@ -117,3 +117,9 @@ gateway:
             kind: Secret
             name: httpbin-lab1-tls
         mode: Terminate
+httproute:
+  enabled: false
+  name: "httpbin-route"
+  namespace: "default"
+  hostnames:
+    - httpbin.lab1.nekolabs.cc
