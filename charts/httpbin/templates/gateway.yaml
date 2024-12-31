@@ -10,6 +10,6 @@ metadata:
   {{- end }}
 
 spec:
-  gatewayClassName: {{ .Values.gateway.className }}
+  gatewayClassName: {{ .Values.gateway.className | default "cilium" }}
   listeners: {{ toYaml .Values.gateway.listeners | nindent 4 }}
 {{- end }}

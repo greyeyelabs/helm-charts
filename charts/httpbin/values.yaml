@@ -12,7 +12,7 @@ image:
   pullPolicy: IfNotPresent
   # -- Image tag
   # @default -- chart appVersion
-  tag: ""
+  tag: "v2.15.0"
 
 deployment:
   replicas: 1
@@ -51,7 +51,8 @@ service:
   # -- Service type
   type: ClusterIP
   # -- Service port
-  port: 80
+  port: 8080
+  targetPort: 8080
 
 ingress:
   # -- Specifies whether the ingress should be created
@@ -93,26 +94,26 @@ tolerations: []
 affinity: {}
 
 gateway:
+  enabled: false
   name: "httpbin-gateway"
   namespace: "default"
-  annotations: {}
-#    cert-manager.io/cluster-issuer: "letsencrypt"
-  enabled: false
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt"
   className: "cilium"
-  listeners: []
-#    - allowedRoutes:
-#        namespaces:
-#          from: Selector
-#          selector:
-#            matchLabels:
-#              shared-gateway-access: "true"
-#      hostname: httpbin.lab1.nekolabs.cc
-#      name: httpbin
-#      port: 443
-#      protocol: HTTPS
-#      tls:
-#        certificateRefs:
-#          - group: ""
-#            kind: Secret
-#            name: httpbin-lab1-tls
-#        mode: Terminate
+  listeners:
+    - allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              shared-gateway-access: "true"
+      hostname: httpbin.lab1.nekolabs.cc
+      name: httpbin
+      port: 443
+      protocol: HTTPS
+      tls:
+        certificateRefs:
+          - group: ""
+            kind: Secret
+            name: httpbin-lab1-tls
+        mode: Terminate

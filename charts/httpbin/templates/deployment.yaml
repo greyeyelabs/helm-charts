@@ -5,7 +5,7 @@ metadata:
   labels:
     app: httpbin
 spec:
-  replicas: {{ .Values.deployment.replicas }}
+  replicas: {{ .Values.deployment.replicas | default 1 }}
   selector:
     matchLabels:
       app: httpbin
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: httpbin
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.image.repository | default "mccutchen/go-httpbin" }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: "{{ .Values.image.pullPolicy }}"
           ports:
-            - containerPort: {{ .Values.deployment.containerPort }}
+            - containerPort: {{ .Values.deployment.containerPort | default 8080 }}
